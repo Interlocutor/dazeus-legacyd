@@ -21,8 +21,9 @@ foreach(@{$dazeus->networks()}) {
 	}
 }
 if(!$joined) {
-	warn "Chosen network doesn't seem to be known in DaZeus... quitting\n";
-	return;
+	warn "Chosen network doesn't seem to be known in DaZeus...\n";
+	warn "Known networks: " . join(', ', @{$dazeus->networks()}) . "\n";
+	exit;
 }
 
 print "Getting config...\n";
