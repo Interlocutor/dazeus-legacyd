@@ -88,7 +88,7 @@ sub dazeus_event {
 	if($e eq "WHOIS") {
 		whois($uniqueid, $p[1], $p[2] eq "true" ? 1 : 0);
 	} elsif($e eq "MESSAGE") {
-		message($uniqueid, @p, $p[2]);
+		message($uniqueid, $p[0], $p[1], $p[2], $p[2]);
 	} elsif($e eq "JOINED") {
 		dispatch( "chanjoin", undef, undef, {
 			who => $p[0],
