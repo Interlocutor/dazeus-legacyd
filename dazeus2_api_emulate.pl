@@ -36,7 +36,7 @@ for(my $i = 1; $i <= $numModules; ++$i) {
 my @modules;
 
 $dazeus->subscribe(qw/WELCOMED CONNECTED DISCONNECTED JOINED PARTED QUIT NICK
-	MODE TOPIC INVITE KICK MESSAGE NOTICE CTCPREQ CTCPREPL ACTION NUMERIC
+	MODE TOPIC INVITE KICK PRIVMSG NOTICE CTCPREQ CTCPREPL ACTION NUMERIC
 	UNKNOWN NAMES WHOIS/, \&dazeus_event);
 
 POE::Session->create(
@@ -87,7 +87,7 @@ sub dazeus_event {
 	my $e = uc($event->{event});
 	if($e eq "WHOIS") {
 		whois($uniqueid, $p[1], $p[2] eq "true" ? 1 : 0);
-	} elsif($e eq "MESSAGE") {
+	} elsif($e eq "PRIVMSG") {
 		message($uniqueid, $p[0], $p[1], $p[2], $p[2]);
 	} elsif($e eq "JOINED") {
 		dispatch( "chanjoin", undef, undef, {
