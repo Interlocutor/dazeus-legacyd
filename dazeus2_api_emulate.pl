@@ -35,7 +35,7 @@ for(my $i = 1; $i <= $numModules; ++$i) {
 }
 my @modules;
 
-$dazeus->subscribe(qw/WELCOMED CONNECTED DISCONNECTED JOINED PARTED QUIT NICK
+$dazeus->subscribe(qw/CONNECT DISCONNECT JOIN PART QUIT NICK
 	MODE TOPIC INVITE KICK PRIVMSG NOTICE CTCPREQ CTCPREPL ACTION NUMERIC
 	UNKNOWN NAMES WHOIS/, \&dazeus_event);
 
@@ -58,7 +58,7 @@ sub start_legacyd {
 	}
 
 	warn "Simulating a connection to network $network...\n";
-	dazeus_event($dazeus, {event => "CONNECTED", params => [$network]});
+	dazeus_event($dazeus, {event => "CONNECT", params => [$network]});
 	my $channels = $dazeus->channels($network);
 	my $mynick = $dazeus->getNick($network);
 	foreach(@$channels) {
@@ -89,19 +89,19 @@ sub dazeus_event {
 		whois($uniqueid, $p[1], $p[2] eq "true" ? 1 : 0);
 	} elsif($e eq "PRIVMSG") {
 		message($uniqueid, $p[0], $p[1], $p[2], $p[2]);
-	} elsif($e eq "JOINED") {
+	} elsif($e eq "JOIN") {
 		dispatch( "chanjoin", undef, undef, {
 			who => $p[0],
 			channel => $p[1],
 		});
-	} elsif($e eq "PARTED") {
+	} elsif($e eq "PART") {
 		dispatch("chanpart", undef, undef, {
 			who => $p[0],
 			channel => $p[1],
 		});
 	} elsif($e eq "NICK") {
 		dispatch( "nick_change", 0, 0, $p[0], $p[1] );
-	} elsif($e eq "CONNECTED") {
+	} elsif($e eq "CONNECT") {
 		dispatch( "connected" );
 	} elsif($e eq "NAMES") {
 		shift @p;
