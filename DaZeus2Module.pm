@@ -128,7 +128,7 @@ sub getNick {
 sub set {
     my $self = shift;
     my $qualifier = "perl." . $self->{Name} . "." . $_[0];
-    my $value     = ref($_[1]) ? encode_base64(freeze($_[1])) : $_[1];
+    my $value     = $_[1];
     eval {
       $self->{DaZeus}->setProperty($qualifier, $value, $self->{Network});
     };
@@ -152,7 +152,6 @@ sub get {
 
     return undef if( !defined($value) );
 
-    $value = eval { thaw(decode_base64($value)) } || $value;
     return $value;
 }
 
