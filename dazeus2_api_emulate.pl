@@ -11,6 +11,7 @@ if(!$network) {
 }
 
 my $dazeus = DaZeus->connect($socket);
+my $sock;
 my $uniqueid = $network;
 
 my $joined = 0;
@@ -35,13 +36,10 @@ for(my $i = 1; $i <= $numModules; ++$i) {
 }
 my @modules;
 
-$dazeus->subscribe(qw/CONNECT DISCONNECT JOIN PART QUIT NICK
-	MODE TOPIC INVITE KICK PRIVMSG NOTICE CTCPREQ CTCPREPL ACTION NUMERIC
-	UNKNOWN NAMES WHOIS/, \&dazeus_event);
-
 POE::Session->create(
 	inline_states => {
 		_start => \&start_legacyd,
+		start  => \&start_legacyd,
 		_stop  => sub { warn "Legacyd session stopping...\n" },
 		sock   => \&sock_event,
 		tick   => \&tick_event,
@@ -52,9 +50,14 @@ POE::Kernel->run();
 
 sub start_legacyd {
 	print "Starting DaZeus 2 Legacy Plugin Daemon...\n";
+
+	$dazeus->subscribe(qw/CONNECT DISCONNECT JOIN PART QUIT NICK
+		MODE TOPIC INVITE KICK PRIVMSG NOTICE CTCPREQ CTCPREPL ACTION NUMERIC
+		UNKNOWN NAMES WHOIS/, \&dazeus_event);
+
 	foreach(@modulesToLoad) {
 		print "Loading module $_....\n";
-		loadModule($_);
+		reloadModule($_);
 	}
 
 	warn "Simulating a connection to network $network...\n";
@@ -67,7 +70,7 @@ sub start_legacyd {
 		$dazeus->sendNames($network, $_);
 	}
 
-	$_[KERNEL]->select_read($dazeus->socket(), "sock");
+	$_[KERNEL]->select_read($sock = $dazeus->socket(), "sock");
 	$_[KERNEL]->delay(tick => 5);
 	$dazeus->handleEvents();
 }
@@ -112,7 +115,28 @@ sub dazeus_event {
 
 sub sock_event {
 	my ($handle, $mode) = @_[ARG0, ARG1];
-	$dazeus->handleEvents();
+	eval {
+		$dazeus->handleEvents();
+	};
+	if($@) {
+		warn "Handling events failed: $@\n";
+		warn "Attempting to restart session...\n";
+		$_[KERNEL]->select_read($sock);
+		undef $sock;
+		do {
+			warn "Attempting to connect...\n";
+			eval {
+				$dazeus = DaZeus->connect($socket);
+			};
+			if($@ || !$dazeus) {
+				warn "Attempt failed: $@\n";
+				undef $dazeus;
+				sleep 5;
+			}
+		} until($dazeus);
+		warn "Connected. Restarting session...\n";
+		$_[KERNEL]->delay(start => 1);
+	}
 }
 
 sub whois {
