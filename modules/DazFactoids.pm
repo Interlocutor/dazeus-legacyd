@@ -3,6 +3,7 @@
 
 # DazFactoids Module
 # Copyright (C) 2011  Aaron van Geffen <aaron@aaronweb.net>
+# Copyright (C) 2013  Thom "TheGuyOfDoom" Wiggers <ret@rded.nl>
 # Original module (C) 2007  Sjors Gielen <sjorsgielen@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -155,6 +156,12 @@ sub told {
 		return "I know " . $self->countFactoids() . " factoids.";
 	}
 
+	elsif ($command eq "blame" || $command eq "whodunnit") {
+		return "You'll have to give me something to work with, chap." if (!$rest);
+
+		return $self->blameFactoid($rest, $mess);
+	}
+
 	# Search for factoids.
 	elsif ($command eq "search") {
 		return "You don't have dazeus.commands.factoidsearch permissions." if (!$p->has("dazeus.commands.factoidsearch"));
@@ -205,6 +212,25 @@ sub getFactoid {
 	return $mode eq "normal" && !defined($value->{reply}) ? $factoid . " is " . $fact : $fact;
 }
 
+sub blameFactoid {
+	my ($self, $factoid, $mess) = @_;
+	my $value = $self->get("factoid_" . lc($factoid));
+	my $who = $mess->{who};
+	my $channel = $mess->{channel};
+
+	# Do we know this at all?
+	if (!defined($value)) {
+		return "I don't know $factoid.";
+	}
+	my $creator = $value->{creator};
+	if (!defined($creator)) {
+		return "This factoid was set by a ninja";
+	}
+
+	$creator =~ s/^(..)/$1~/;
+	return $factoid . " was set by " . $value->{creator} . " at " . localtime($value->{'timestamp'}) . ".";
+}
+
 sub teachFactoid {
 	my ($self, $factoid, $value, $who, $channel, %opts) = @_;
 
@@ -218,7 +244,7 @@ sub teachFactoid {
 	print "-----\n" . Dumper(%opts) . "\n-----\n";
 
 	# Let's learn it already!
-	$self->set("factoid_" . lc($factoid), { value => $value, %opts });
+	$self->set("factoid_" . lc($factoid), { value => $value, creator => $who, timestamp => time(), %opts });
 	return 0;
 }
 
