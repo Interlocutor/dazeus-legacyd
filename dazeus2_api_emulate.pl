@@ -28,11 +28,12 @@ if(!$joined) {
 }
 
 print "Getting config...\n";
-my $numModules = $dazeus->getConfig("perlplugin.modules") || 0;
+$dazeus->doHandshake("legacyd", "1.0", "perlplugin");
+my $numModules = $dazeus->getConfig("plugin", "modules") || 0;
 print "$numModules modules to load.\n";
 my @modulesToLoad;
 for(my $i = 1; $i <= $numModules; ++$i) {
-	push @modulesToLoad, $dazeus->getConfig("perlplugin.module$i");
+	push @modulesToLoad, $dazeus->getConfig("plugin", "module$i");
 }
 my @modules;
 
