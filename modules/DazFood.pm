@@ -75,7 +75,7 @@ sub told
 		} else {
 			$self->bot->reply($mess, "Deze mensen krijgen eten: ". join(", ", @foodlist). ".");
 			if(defined($cook)) {
-				$self->bot->reply($mess, "$cook kookt namelijk $cookwhat.");
+				$self->bot->reply($mess, "$cook serveert namelijk $cookwhat.");
 			} else {
 				$self->bot->reply($mess, "Er is alleen nog geen eten.");
 			}
@@ -91,19 +91,19 @@ sub told
 		return 1;
 	} elsif($command eq "cook") {
 		if(defined($cook)) {
-			return "$cook kookt al $cookwhat!";
+			return "$cook serveert al $cookwhat!";
 		} else {
 			$cook = $who;
 			$rest ||= "iets";
 			$cookwhat = $rest;
 			$self->save();
-			return "Okee, $cook kookt nu $cookwhat.";
+			return "Okee, $cook serveert nu $cookwhat.";
 		}
 	} elsif($command eq "nocook") {
 		if(!defined($cook)) {
-			return "Er werd nog niet gekookt.";
+			return "Er werd nog niets geserveerd.";
 		} else {
-			my $str = "Okee, $cook kookt niet meer $cookwhat.";
+			my $str = "Okee, $cook serveert niet meer $cookwhat.";
 			$cook = undef;
 			$cookwhat = undef;
 			$self->save();
@@ -111,14 +111,14 @@ sub told
 		}
 	} elsif($command eq "let") {
 		if(defined($cook)) {
-			return "$cook kookt al $cookwhat!";
+			return "$cook serveert al $cookwhat!";
 		}
 		if($rest =~ /^(.+?) cook\s?(.*)$/i) {
 			$cook = $1;
 			$cookwhat = $2;
 			$cookwhat ||= "iets";
 			$self->save();
-			return "OK, $cook kookt nu $cookwhat.";
+			return "OK, $cook serveert nu $cookwhat.";
 		}
 		return "Syntax: let IEMAND cook IETS";
 	} elsif($command eq "foodhelp") {
